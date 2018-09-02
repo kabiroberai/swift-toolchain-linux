@@ -49,6 +49,7 @@ cp -a mac/lib/swift_static/iphoneos usr/lib/swift_static/
 rm -rf mac
 
 info "Packaging toolchain"
+mkdir -p ../packages
 mv usr swift
-tar -czf "../swift-${version}-$4.tar.gz" swift
+tar -czf "../packages/swift-${version}-$4.tar.gz" swift
 rm -rf swift
