@@ -3,16 +3,16 @@ set -e
 shopt -s extglob
 cd "$(dirname "$0")"
 
-if [[ $# -ne 4 ]]; then 
-	echo "Usage: $0 <major> <minor> <patch> <linux version such as ubuntu16.10>"
+if [[ $# -ne 2 ]]; then 
+	echo "Usage: $0 <version> <linux version such as ubuntu16.10>"
 	exit 1
 fi
 
 info() { echo "[info] $1"; }
 
-version="$1.$2.$3"
+version="$1"
 file_name_mac="swift-${version}-RELEASE-osx"
-file_name_linux="swift-${version}-RELEASE-$4"
+file_name_linux="swift-${version}-RELEASE-$2"
 package="${file_name_mac}-package.pkg"
 
 mkdir -p toolchains
@@ -31,14 +31,14 @@ mv usr mac
 rm -rf "${package}"
 
 info "Downloading Linux toolchain"
-if [[ ! -f "toolchain-$4-${version}.tar.gz" ]]; then
-	curl -#o "toolchain-$4-${version}.tar.gz" "https://swift.org/builds/swift-${version}-release/${4/./}/swift-${version}-RELEASE/${file_name_linux}.tar.gz"
+if [[ ! -f "toolchain-$2-${version}.tar.gz" ]]; then
+	curl -#o "toolchain-$2-${version}.tar.gz" "https://swift.org/builds/swift-${version}-release/${2/./}/swift-${version}-RELEASE/${file_name_linux}.tar.gz"
 fi
 
 info "Unpacking Linux toolchain"
 # remove any pre-existing usr dir first
 rm -rf linux
-tar -xzf "toolchain-$4-${version}.tar.gz"
+tar -xzf "toolchain-$2-${version}.tar.gz"
 mv "${file_name_linux}/usr" .
 rm -rf "${file_name_linux}"
 
@@ -51,5 +51,5 @@ rm -rf mac
 info "Packaging toolchain"
 mkdir -p ../packages
 mv usr swift
-tar -czf "../packages/swift-${version}-$4.tar.gz" swift
+tar -czf "../packages/swift-${version}-$2.tar.gz" swift
 rm -rf swift
