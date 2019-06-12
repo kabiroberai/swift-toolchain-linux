@@ -14,6 +14,7 @@ version="$1"
 file_name_mac="swift-${version}-RELEASE-osx"
 file_name_linux="swift-${version}-RELEASE-$2"
 package="${file_name_mac}-package.pkg"
+platform="$(uname -s)"
 
 mkdir -p toolchains
 cd toolchains
@@ -26,8 +27,15 @@ fi
 info "Unpacking macOS toolchain"
 rm -rf mac
 xar -xf "toolchain-mac-${version}.pkg" "${package}/Payload"
-tar -xzf "${package}/Payload" usr
-mv usr mac
+cd "${package}"
+mkdir -p out
+if [[ "$platform" = "Darwin" ]]; then
+       tar -xzf Payload -C out usr
+else
+       gzip -cd Payload | cpio -iD out
+fi
+mv out/usr ../mac
+cd ..
 rm -rf "${package}"
 
 info "Downloading Linux toolchain"

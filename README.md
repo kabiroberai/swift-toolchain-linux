@@ -2,6 +2,13 @@
 
 Swift iOS toolchain for Linux
 
+## Prerequisites
+
+For Linux
+
+* cpio ([ubuntu18.04](https://packages.ubuntu.com/bionic/cpio))
+* [xar](http://mackyle.github.io/xar/)
+
 ## Usage
 
 Run `./create-toolchain <version> <linux version>`
