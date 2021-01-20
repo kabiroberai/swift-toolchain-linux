@@ -50,22 +50,23 @@ fi
 
 file_name_linux="swift-${swift_version}-RELEASE-${linux_version}"
 
-info "Downloading Linux toolchain"
 if [[ ! -f "toolchain-${linux_version}-${swift_version}.tar.gz" ]]; then
+	info "Downloading Linux toolchain"
 	curl -#o "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
 fi
 
 info "Unpacking Linux toolchain"
 # remove any pre-existing usr dir first
-rm -rf linux
+rm -rf usr
 tar -xzf "toolchain-${linux_version}-${swift_version}.tar.gz"
 mv "${file_name_linux}/usr" .
 rm -rf "${file_name_linux}"
 
 info "Modifying Linux toolchain"
-# TODO: Un-comment this once we migrate the swift files in $THEOS/bin (with swift-driver) to python
-# rm -rf usr/lib/swift/!(clang|migrator|shims) usr/lib/swift_static/*
-cp -a "${mac_toolchain}"/usr/lib/swift/iphoneos usr/lib/swift/
+mv usr/lib/swift{,_linux}
+cp -a "${mac_toolchain}"/usr/lib/{swift,arc} usr/lib/
+rm usr/lib/swift/clang
+mv usr/lib/swift_linux/clang usr/lib/swift/
 
 info "Packaging toolchain"
 mkdir -p ../packages
