@@ -63,10 +63,14 @@ mv "${file_name_linux}/usr" .
 rm -rf "${file_name_linux}"
 
 info "Modifying Linux toolchain"
+
 mv usr/lib/swift{,_linux}
-cp -a "${mac_toolchain}"/usr/lib/{swift,arc} usr/lib/
+cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,arc} usr/lib/
 rm usr/lib/swift/clang
 mv usr/lib/swift_linux/clang usr/lib/swift/
+
+mv usr/include{,_linux}
+cp -a "${mac_toolchain}"/usr/include usr/
 
 info "Packaging toolchain"
 mkdir -p ../packages
