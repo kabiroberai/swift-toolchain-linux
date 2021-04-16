@@ -1,0 +1,56 @@
+name: Create Release
+
+on:
+  - push
+
+jobs:
+  create_release:
+    # https://github.com/actions/create-release/issues/14#issuecomment-555379810
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Draft Release
+        body: ''
+        draft: true
+    - name: Save Upload URL to File
+      run: printf "%s" "${{ steps.create_release.outputs.upload_url }}" > upload_url.txt
+    - name: Save Upload URL as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: upload_url
+        path: upload_url.txt
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu20.04, ubuntu18.04, ubuntu16.04]
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Fetch Upload URL
+      uses: actions/download-artifact@v2
+      with:
+        name: upload_url
+    - name: Build Release
+      id: build_release
+      run: |
+        echo "::set-output name=upload_url::$(cat upload_url.txt)"
+        rm upload_url.txt
+        ./create-toolchain ${{ matrix.os }}
+        echo "::set-output name=asset_path::"packages/*.tar.xz
+        echo "::set-output name=asset_name::"$(basename packages/*.tar.xz)
+    - name: Upload Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.build_release.outputs.upload_url }}
+        asset_path: ${{ steps.build_release.outputs.asset_path }}
+        asset_name: ${{ steps.build_release.outputs.asset_name }}
+        asset_content_type: application/gzip

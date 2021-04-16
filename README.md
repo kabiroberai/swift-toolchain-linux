@@ -6,7 +6,7 @@ Swift iOS toolchain for Linux
 
 ### For Linux
 
-* cpio ([ubuntu18.04](https://packages.ubuntu.com/bionic/cpio))
+* cpio ([ubuntu20.04](https://packages.ubuntu.com/focal/cpio))
 * [xar](http://mackyle.github.io/xar/)
 
 ### For macOS
@@ -17,6 +17,11 @@ Swift iOS toolchain for Linux
 
 Run `./create-toolchain <linux version> [path to xctoolchain]`
 
-The `linux version` argument is in the format `<distribution><version>` (all lowercase), for example `ubuntu18.04`. See <https://swift.org/download/> for the list of supported Linux versions.
+The `linux version` argument is in the format `<distribution><version>` (all lowercase). See <https://swift.org/download/> for the list of supported Linux versions.
+
+The currently supported versions are:
+- `ubuntu16.04`
+- `ubuntu18.04`
+- `ubuntu20.04`
 
 Upon completion of the script, the output can be found in the `packages` directory.
