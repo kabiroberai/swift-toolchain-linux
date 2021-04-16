@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu20.04, ubuntu18.04, ubuntu16.04]
-    runs-on: macos-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Fetch Upload URL
