@@ -41,6 +41,7 @@ jobs:
     - name: Build Release
       id: build_release
       run: |
+        sudo apt-get install cpio xar
         echo "::set-output name=upload_url::$(cat upload_url.txt)"
         rm upload_url.txt
         ./create-toolchain ${{ matrix.os }}
