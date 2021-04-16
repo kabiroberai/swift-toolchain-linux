@@ -1,63 +1,114 @@
 #!/bin/bash
 set -e
-shopt -s extglob
 cd "$(dirname "$0")"
 
-if [[ $# -ne 2 ]]; then 
-	echo "Usage: $0 <version> <linux version such as ubuntu16.10>"
+[[ "$(uname -s)" = "Darwin" ]] && is_mac=true
+
+if [[ $# -ne 1 && $# -ne 2 ]]; then 
+	if [[ "${is_mac}" = true ]]; then
+		echo "Usage: $0 <linux version such as ubuntu20.04> [path to xctoolchain]"
+	else
+		echo "Usage: $0 <swift version> [linux version such as ubuntu20.04]"
+	fi
 	exit 1
 fi
 
 info() { echo "[info] $1"; }
-
-version="$1"
-file_name_mac="swift-${version}-RELEASE-osx"
-file_name_linux="swift-${version}-RELEASE-$2"
-package="${file_name_mac}-package.pkg"
-platform="$(uname -s)"
+err() {
+	echo "[error] $1"
+	exit 1
+}
 
 mkdir -p toolchains
-cd toolchains
 
-info "Downloading macOS toolchain"
-if [[ ! -f "toolchain-mac-${version}.pkg" ]]; then
-	curl -#o "toolchain-mac-${version}.pkg" "https://swift.org/builds/swift-${version}-release/xcode/swift-${version}-RELEASE/${file_name_mac}.pkg"
-fi
-
-info "Unpacking macOS toolchain"
-rm -rf mac
-xar -xf "toolchain-mac-${version}.pkg" "${package}/Payload"
-cd "${package}"
-mkdir -p out
-if [[ "$platform" = "Darwin" ]]; then
-       tar -xzf Payload -C out usr
+if [[ "${is_mac}" = true ]]; then
+	linux_version="$1"
+	mac_toolchain="$(cd "${2:-"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"}" && pwd)"
+	swift_version="$("${mac_toolchain}/usr/bin/swift" --version | head -1 | cut -f4 -d" ")"
+	info "Detected Swift version ${swift_version}"
+	cd toolchains
 else
-       gzip -cd Payload | cpio -iD out
+	swift_version="$1"
+	linux_version="$2"
+	if [[ -z "${linux_version}" ]]; then
+		if [[ -f /etc/os-release ]]; then
+			. /etc/os-release
+			linux_version="${ID}${VERSION_ID}"
+			info "Detected Linux version ${linux_version}"
+		else
+			err "Could not auto-detect Linux version; please pass it as the second argument to '$0'."
+		fi
+	fi
+	file_name_mac="swift-${swift_version}-RELEASE-osx"
+	package_mac="${file_name_mac}-package.pkg"
+	info "Downloading macOS toolchain"
+	cd toolchains
+	if [[ ! -f "toolchain-mac-${swift_version}.pkg" ]]; then
+		curl -#o "toolchain-mac-${swift_version}.pkg" "https://swift.org/builds/swift-${swift_version}-release/xcode/swift-${swift_version}-RELEASE/${file_name_mac}.pkg"
+	fi
+	info "Unpacking macOS toolchain"
+	rm -rf mac
+	xar -xf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
+	cd "${package_mac}"
+	mkdir -p out
+	cd out
+	gzip -cd ../Payload | cpio -i
+	cd ..
+	mv out ../mac
+	cd ..
+	rm -rf "${package_mac}"
+	mac_toolchain="mac"
 fi
-mv out/usr ../mac
-cd ..
-rm -rf "${package}"
 
-info "Downloading Linux toolchain"
-if [[ ! -f "toolchain-$2-${version}.tar.gz" ]]; then
-	curl -#o "toolchain-$2-${version}.tar.gz" "https://swift.org/builds/swift-${version}-release/${2/./}/swift-${version}-RELEASE/${file_name_linux}.tar.gz"
+file_name_linux="swift-${swift_version}-RELEASE-${linux_version}"
+
+if [[ ! -f "toolchain-${linux_version}-${swift_version}.tar.gz" ]]; then
+	info "Downloading Linux toolchain"
+	curl -#o "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
 fi
 
 info "Unpacking Linux toolchain"
-# remove any pre-existing usr dir first
+# remove any pre-existing linux dir first
 rm -rf linux
-tar -xzf "toolchain-$2-${version}.tar.gz"
-mv "${file_name_linux}/usr" .
-rm -rf "${file_name_linux}"
+tar -xzf "toolchain-${linux_version}-${swift_version}.tar.gz"
+mv "${file_name_linux}" linux
+mv linux/{usr,host}
 
 info "Modifying Linux toolchain"
-rm -rf usr/lib/swift/!(clang|migrator|shims) usr/lib/swift_static/*
-cp -a mac/lib/swift/iphoneos usr/lib/swift/
-cp -a mac/lib/swift_static/iphoneos usr/lib/swift_static/
-rm -rf mac
+
+function link_file {
+	# example of $1: linux/host/bin/swiftc
+	usr_path="${1#linux/host/}"
+	iphone_path="linux/iphone/${usr_path}"
+	mkdir -p "$(dirname "${iphone_path}")"
+	# calculate relative path to host file; based on 
+	# https://stackoverflow.com/a/27175714/3769927
+	usr_path_curr="${usr_path}"
+	rel_prefix="../"
+	while [[ "${usr_path_curr}" = */* ]]; do
+		usr_path_curr="${usr_path_curr%/*}"
+		rel_prefix="../${rel_prefix}"
+	done
+	ln -s "${rel_prefix}host/${usr_path}" "${iphone_path}"
+}
+export -f link_file
+
+# symlink all files in these dirs from the host toolchain...
+find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -path 'linux/host/share/*' -o -path 'linux/host/lib/*' \) -and -not -type d -print0 | xargs -0 -I{} bash -c 'link_file "$@"' _ {}
+# ...but replace some components with mac ones...
+rm -rf linux/iphone/lib/swift{,_static}
+cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,arc} linux/iphone/lib/
+cp -a "${mac_toolchain}"/usr/include linux/iphone/include
+# ...but-but replace the mac lib/swift/clang symlink with the linux one
+rm linux/iphone/lib/swift/clang
+link_file linux/host/lib/swift/clang
+
+info "Installing Darwin tools"
+# The hierarchy lines up with ours just right so we dont need to -C
+curl -#L "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v2.0.0/darwin-tools-${linux_version}.tar.gz" | tar -xzf -
 
 info "Packaging toolchain"
 mkdir -p ../packages
-mv usr swift
-tar -czf "../packages/swift-${version}-$2.tar.gz" swift
-rm -rf swift
+# this takes forever but xz is around half the size of gz so imo worth it
+tar -c linux | xz -z -vv -c -T 0 > "../packages/swift-${swift_version}-${linux_version}.tar.xz"
+rm -rf linux mac
