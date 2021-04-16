@@ -4,6 +4,9 @@ on:
   - push
 
 jobs:
+  strategy:
+    max-parallel: 1
+
   create_release:
     # https://github.com/actions/create-release/issues/14#issuecomment-555379810
     runs-on: ubuntu-20.04
