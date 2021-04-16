@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu20.04, ubuntu18.04, ubuntu16.04]
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - name: Fetch Upload URL
@@ -41,12 +41,11 @@ jobs:
     - name: Build Release
       id: build_release
       run: |
-        sudo apt-get install cpio xar
         echo "::set-output name=upload_url::$(cat upload_url.txt)"
         rm upload_url.txt
         ./create-toolchain ${{ matrix.os }}
-        echo "::set-output name=asset_path::"packages/*.tar.xz
-        echo "::set-output name=asset_name::"$(basename packages/*.tar.xz)
+        echo "::set-output name=asset_path::"packages/*
+        echo "::set-output name=asset_name::"$(basename packages/*)
     - name: Upload Release
       uses: actions/upload-release-asset@v1
       env:

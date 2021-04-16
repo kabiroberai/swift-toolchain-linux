@@ -110,5 +110,5 @@ curl -#L "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v2
 info "Packaging toolchain"
 mkdir -p ../packages
 # this takes forever but xz is around half the size of gz so imo worth it
-tar -c linux | xz -zvc -T 0 > "../packages/swift-${swift_version}-${linux_version}.tar.xz"
+tar -c linux | xz -z -vv -c -T 0 > "../packages/swift-${swift_version}-${linux_version}.tar.xz"
 rm -rf linux mac
