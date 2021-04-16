@@ -44,7 +44,6 @@ jobs:
         echo "::set-output name=upload_url::$(cat upload_url.txt)"
         rm upload_url.txt
         ./create-toolchain ${{ matrix.os }}
-        echo "::set-output name=asset_path::"packages/*
         echo "::set-output name=asset_name::"$(basename packages/*)
     - name: Upload Release
       uses: actions/upload-release-asset@v1
@@ -52,6 +51,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.build_release.outputs.upload_url }}
-        asset_path: ${{ steps.build_release.outputs.asset_path }}
+        asset_path: packages/${{ steps.build_release.outputs.asset_name }}
         asset_name: ${{ steps.build_release.outputs.asset_name }}
         asset_content_type: application/gzip
