@@ -24,7 +24,7 @@ mkdir -p toolchains
 if [[ "${is_mac}" = true ]]; then
 	linux_version="$1"
 	mac_toolchain="$(cd "${2:-"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"}" && pwd)"
-	swift_version="$("${mac_toolchain}/usr/bin/swift" --version | head -1 | cut -f4 -d" ")"
+	swift_version="$("${mac_toolchain}/usr/bin/swift" --version 2>/dev/null | head -1 | cut -f4 -d" ")"
 	info "Detected Swift version ${swift_version}"
 	cd toolchains
 else
@@ -64,7 +64,8 @@ file_name_linux="swift-${swift_version}-RELEASE-${linux_version}"
 
 if [[ ! -f "toolchain-${linux_version}-${swift_version}.tar.gz" ]]; then
 	info "Downloading Linux toolchain"
-	curl -#o "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
+	curl -#Lo "toolchain-${linux_version}-${swift_version}.tar.gz.tmp" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
+	mv "toolchain-${linux_version}-${swift_version}.tar.gz.tmp" "toolchain-${linux_version}-${swift_version}.tar.gz"
 fi
 
 info "Unpacking Linux toolchain"
