@@ -31,7 +31,7 @@ jobs:
     needs: create_release
     strategy:
       matrix:
-        os: [ubuntu20.04, ubuntu18.04, ubuntu16.04]
+        os: [ubuntu20.04-aarch64, ubuntu20.04, ubuntu18.04]
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2

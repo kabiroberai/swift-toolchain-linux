@@ -2,6 +2,8 @@
 set -e
 cd "$(dirname "$0")"
 
+DARWIN_TOOLS_VERSION="2.1.0"
+
 [[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
 if [[ $# -ne 1 && $# -ne 2 ]]; then 
@@ -101,14 +103,15 @@ find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -pa
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
 cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,arc} linux/iphone/lib/
+cp -a "${mac_toolchain}"/usr/lib/clang/*/lib/* linux/iphone/lib/clang/*/lib/
 cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
 rm linux/iphone/lib/swift/clang
-link_file linux/host/lib/swift/clang
+cp -a linux/{host,iphone}/lib/swift/clang
 
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
-dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v2.0.0/darwin-tools-${linux_version}.tar.gz"
+dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
 tar -xzf "darwin-tools-${linux_version}.tar.gz"
 
 info "Packaging toolchain"
