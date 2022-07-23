@@ -2,6 +2,7 @@ name: Create Release
 
 on:
   - push
+  - workflow_dispatch
 
 jobs:
   create_release:
