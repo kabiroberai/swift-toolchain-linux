@@ -20,6 +20,14 @@ err() {
 }
 
 mkdir -p toolchains
+rm -rf toolchains/*.tmp
+
+# Download and cache
+dl() {
+	[[ -f "$1" ]] && return
+	curl -#Lo "$1.tmp" "$2"
+	mv "$1.tmp" "$1"
+}
 
 if [[ "${is_mac}" = true ]]; then
 	linux_version="$1"
@@ -43,9 +51,7 @@ else
 	package_mac="${file_name_mac}-package.pkg"
 	info "Downloading macOS toolchain"
 	cd toolchains
-	if [[ ! -f "toolchain-mac-${swift_version}.pkg" ]]; then
-		curl -#o "toolchain-mac-${swift_version}.pkg" "https://swift.org/builds/swift-${swift_version}-release/xcode/swift-${swift_version}-RELEASE/${file_name_mac}.pkg"
-	fi
+	dl "toolchain-mac-${swift_version}.pkg" "https://swift.org/builds/swift-${swift_version}-release/xcode/swift-${swift_version}-RELEASE/${file_name_mac}.pkg"
 	info "Unpacking macOS toolchain"
 	rm -rf mac
 	xar -xf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
@@ -62,11 +68,7 @@ fi
 
 file_name_linux="swift-${swift_version}-RELEASE-${linux_version}"
 
-if [[ ! -f "toolchain-${linux_version}-${swift_version}.tar.gz" ]]; then
-	info "Downloading Linux toolchain"
-	curl -#Lo "toolchain-${linux_version}-${swift_version}.tar.gz.tmp" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
-	mv "toolchain-${linux_version}-${swift_version}.tar.gz.tmp" "toolchain-${linux_version}-${swift_version}.tar.gz"
-fi
+dl "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
 
 info "Unpacking Linux toolchain"
 # remove any pre-existing linux dir first
@@ -106,7 +108,8 @@ link_file linux/host/lib/swift/clang
 
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
-curl -#L "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v2.0.0/darwin-tools-${linux_version}.tar.gz" | tar -xzf -
+dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v2.0.0/darwin-tools-${linux_version}.tar.gz"
+tar -xzf "darwin-tools-${linux_version}.tar.gz"
 
 info "Packaging toolchain"
 mkdir -p ../packages
