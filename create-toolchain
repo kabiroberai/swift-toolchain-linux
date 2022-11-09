@@ -102,7 +102,7 @@ export -f link_file
 find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -path 'linux/host/share/*' -o -path 'linux/host/lib/*' \) -and -not -type d -print0 | xargs -0 -I{} bash -c 'link_file "$@"' _ {}
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
-cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,arc} linux/iphone/lib/
+cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,swift-5.5,arc} linux/iphone/lib/
 cp -a "${mac_toolchain}"/usr/lib/clang/*/lib/* linux/iphone/lib/clang/*/lib/
 cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
