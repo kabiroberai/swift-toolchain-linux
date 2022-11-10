@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-DARWIN_TOOLS_VERSION="2.1.0"
+DARWIN_TOOLS_VERSION="2.2.0"
 
 [[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
