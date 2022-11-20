@@ -6,8 +6,7 @@ Swift iOS toolchain for Linux
 
 ### For Linux
 
-* [cpio](https://packages.ubuntu.com/focal/cpio)
-* [xar](http://github.com/mackyle/xar/)
+* [libarchive-tools](https://packages.ubuntu.com/focal/libarchive-tools)
 
 ### For macOS
 

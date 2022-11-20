@@ -31,7 +31,7 @@ dl() {
 	if [[ -f "$1" ]]; then
 		return
 	fi
-	curl -#Lo "$1.tmp" "$2"
+	curl -Lo "$1.tmp" "$2"
 	mv "$1.tmp" "$1"
 }
 
@@ -59,13 +59,11 @@ else
 	cd toolchains
 	dl "toolchain-mac-${swift_version}.pkg" "https://swift.org/builds/swift-${swift_version}-release/xcode/swift-${swift_version}-RELEASE/${file_name_mac}.pkg"
 	info "Unpacking macOS toolchain"
-	xar -xvf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
+	bsdtar -xvf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
 	mkdir -p mac
 	rm -rf mac/*
-	cd mac
-	gzip -cvd "${package_mac}/Payload" | cpio -iv
-	cd ../
-	rm -rf "${package_mac}"
+	bsdtar -xvf "${package_mac}/Payload" -C mac
+	rm -rf *.pkg
 	mac_toolchain="mac"
 fi
 
@@ -101,7 +99,10 @@ info "Modifying Linux toolchain"
 find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -path 'linux/host/share/*' -o -path 'linux/host/lib/*' \) -and -not -type d -print0 | xargs -0 -I{} bash -c 'link_file "$@"' _ {}
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
-cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,swift-5.5,arc} linux/iphone/lib/
+if [[ "${is_mac}" -eq 1 ]]; then
+	cp -a "${mac_toolchain}"/usr/lib/{swift-5.0,arc} linux/iphone/lib/
+fi
+cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.5} linux/iphone/lib/
 cp -a "${mac_toolchain}"/usr/lib/clang/*/lib/* linux/iphone/lib/clang/*/lib/
 cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
