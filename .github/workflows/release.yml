@@ -4,11 +4,27 @@ on:
   - push
   - workflow_dispatch
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Draft Release
+        body: ''
+        draft: true
+
   build:
+    needs: create_release
     strategy:
       matrix:
-        os: [ubuntu22.04, ubuntu20.04, ubuntu18.04]
+        os: [ubuntu22.04-aarch64, ubuntu22.04, ubuntu20.04-aarch64, ubuntu20.04, ubuntu18.04]
     runs-on: macos-12
     steps:
     - uses: actions/checkout@main
@@ -17,39 +33,7 @@ jobs:
       run: |
         ./create-toolchain ${{ matrix.os }}
 
-    - uses: actions/upload-artifact@main
-      with:
-        name: ${{ matrix.os }}-toolchain
-        path: packages/*-${{ matrix.os }}.tar.xz
-
-  upload:
-    needs: build
-    runs-on: ubuntu-latest
-    env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-    - uses: actions/checkout@main
-    - name: Download Artifacts
-      uses: actions/download-artifact@main
-
-    - name: Set TAG Variable
-      run: |
-        echo "TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ env.TAG }}
-        release_name: Draft Release
-        body: ''
-        draft: true
-
-    - name: Attach Builds To Release
+    - name: Attach Build To Release
       run: |
         set -x
-        toolchains=()
-        for tc in **/*.tar.xz; do
-          toolchains+=("-a" "$tc")
-        done
-        hub release edit "${toolchains[@]}" -m "Draft Release" "$TAG"
+        gh release upload ${GITHUB_REF##*/} packages/*-${{ matrix.os }}.tar.xz
