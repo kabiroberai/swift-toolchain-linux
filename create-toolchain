@@ -2,14 +2,12 @@
 set -e
 cd "$(dirname "$0")"
 
-DARWIN_TOOLS_VERSION="2.2.0"
+DARWIN_TOOLS_VERSION="2.2.1"
 
-if [[ "$(uname -s)" = "Darwin" ]]; then
-	is_mac=1
-fi
+[[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
 if [[ $# -ne 1 && $# -ne 2 ]]; then
-	if [[ "${is_mac}" -eq 1 ]]; then
+	if [[ "${is_mac}" = true ]]; then
 		echo "Usage: $0 <linux version such as ubuntu20.04> [path to xctoolchain]"
 	else
 		echo "Usage: $0 <swift version> [linux version such as ubuntu20.04]"
@@ -28,14 +26,12 @@ rm -rf toolchains/*.tmp
 
 # Download and cache
 dl() {
-	if [[ -f "$1" ]]; then
-		return
-	fi
-	curl -Lo "$1.tmp" "$2"
+	[[ -f "$1" ]] && return
+	curl -#Lo "$1.tmp" "$2"
 	mv "$1.tmp" "$1"
 }
 
-if [[ "${is_mac}" -eq 1 ]]; then
+if [[ "${is_mac}" = true ]]; then
 	linux_version="$1"
 	mac_toolchain="$(cd "${2:-"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"}" && pwd)"
 	swift_version="$("${mac_toolchain}/usr/bin/swift" --version 2>/dev/null | head -1 | cut -f4 -d" ")"
@@ -99,7 +95,7 @@ info "Modifying Linux toolchain"
 find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -path 'linux/host/share/*' -o -path 'linux/host/lib/*' \) -and -not -type d -print0 | xargs -0 -I{} bash -c 'link_file "$@"' _ {}
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
-if [[ "${is_mac}" -eq 1 ]]; then
+if [[ "${is_mac}" = true ]]; then
 	cp -a "${mac_toolchain}"/usr/lib/{swift-5.0,arc} linux/iphone/lib/
 fi
 cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.5} linux/iphone/lib/
