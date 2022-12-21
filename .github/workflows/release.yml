@@ -10,6 +10,8 @@ env:
 jobs:
   create_release:
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.create_release.outputs.release_tag }}
     steps:
     - uses: actions/checkout@v3
     - name: Create Release
@@ -30,9 +32,11 @@ jobs:
     - name: Build Release
       id: build_release
       run: |
-        ./create-toolchain ${{ matrix.os }}
+        # ./create-toolchain ${{ matrix.os }}
+        mkdir -p packages
+        echo "" > packages/dummy-${{ matrix.os }}.tar.xz
 
     - name: Attach Build To Release
       run: |
         set -x
-        gh release upload ${{ steps.create_release.outputs.release_tag }} packages/*-${{ matrix.os }}.tar.xz
+        gh release upload ${{ needs.create_release.outputs.release_tag }} packages/*-${{ matrix.os }}.tar.xz
