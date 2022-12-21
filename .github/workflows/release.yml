@@ -32,9 +32,7 @@ jobs:
     - name: Build Release
       id: build_release
       run: |
-        # ./create-toolchain ${{ matrix.os }}
-        mkdir -p packages
-        echo "" > packages/dummy-${{ matrix.os }}.tar.xz
+        ./create-toolchain ${{ matrix.os }}
 
     - name: Attach Build To Release
       run: |
