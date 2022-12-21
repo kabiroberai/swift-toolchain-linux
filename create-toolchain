@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 cd "$(dirname "$0")"
 
-DARWIN_TOOLS_VERSION="2.2.0"
+DARWIN_TOOLS_VERSION="2.2.1"
 
 [[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
-if [[ $# -ne 1 && $# -ne 2 ]]; then 
+if [[ $# -ne 1 && $# -ne 2 ]]; then
 	if [[ "${is_mac}" = true ]]; then
 		echo "Usage: $0 <linux version such as ubuntu20.04> [path to xctoolchain]"
 	else
@@ -55,16 +55,11 @@ else
 	cd toolchains
 	dl "toolchain-mac-${swift_version}.pkg" "https://swift.org/builds/swift-${swift_version}-release/xcode/swift-${swift_version}-RELEASE/${file_name_mac}.pkg"
 	info "Unpacking macOS toolchain"
-	rm -rf mac
-	xar -xf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
-	cd "${package_mac}"
-	mkdir -p out
-	cd out
-	gzip -cd ../Payload | cpio -i
-	cd ..
-	mv out ../mac
-	cd ..
-	rm -rf "${package_mac}"
+	bsdtar -xvf "toolchain-mac-${swift_version}.pkg" "${package_mac}/Payload"
+	mkdir -p mac
+	rm -rf mac/*
+	bsdtar -xvf "${package_mac}/Payload" -C mac
+	rm -rf *.pkg
 	mac_toolchain="mac"
 fi
 
@@ -73,20 +68,17 @@ file_name_linux="swift-${swift_version}-RELEASE-${linux_version}"
 dl "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/builds/swift-${swift_version}-release/${linux_version/./}/swift-${swift_version}-RELEASE/${file_name_linux}.tar.gz"
 
 info "Unpacking Linux toolchain"
-# remove any pre-existing linux dir first
 rm -rf linux
-tar -xzf "toolchain-${linux_version}-${swift_version}.tar.gz"
+tar -xzvf "toolchain-${linux_version}-${swift_version}.tar.gz"
 mv "${file_name_linux}" linux
 mv linux/{usr,host}
 
-info "Modifying Linux toolchain"
-
-function link_file {
+link_file() {
 	# example of $1: linux/host/bin/swiftc
 	usr_path="${1#linux/host/}"
 	iphone_path="linux/iphone/${usr_path}"
 	mkdir -p "$(dirname "${iphone_path}")"
-	# calculate relative path to host file; based on 
+	# calculate relative path to host file; based on
 	# https://stackoverflow.com/a/27175714/3769927
 	usr_path_curr="${usr_path}"
 	rel_prefix="../"
@@ -98,11 +90,17 @@ function link_file {
 }
 export -f link_file
 
+info "Modifying Linux toolchain"
 # symlink all files in these dirs from the host toolchain...
 find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -path 'linux/host/share/*' -o -path 'linux/host/lib/*' \) -and -not -type d -print0 | xargs -0 -I{} bash -c 'link_file "$@"' _ {}
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
-cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.0,swift-5.5,arc} linux/iphone/lib/
+if [[ "${is_mac}" = true ]]; then
+	cp -a "${mac_toolchain}"/usr/lib/{swift-5.0,arc} linux/iphone/lib/
+else
+	info "Note: this toolchain will ONLY support iOS 12.2+."
+fi
+cp -a "${mac_toolchain}"/usr/lib/{swift,swift-5.5} linux/iphone/lib/
 cp -a "${mac_toolchain}"/usr/lib/clang/*/lib/* linux/iphone/lib/clang/*/lib/
 cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
@@ -112,10 +110,10 @@ cp -a linux/{host,iphone}/lib/swift/clang
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
 dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
-tar -xzf "darwin-tools-${linux_version}.tar.gz"
+tar -xzvf "darwin-tools-${linux_version}.tar.gz"
 
 info "Packaging toolchain"
 mkdir -p ../packages
 # this takes forever but xz is around half the size of gz so imo worth it
-tar -c linux | xz -z -vv -c -T 0 > "../packages/swift-${swift_version}-${linux_version}.tar.xz"
+tar -cJvf "../packages/swift-${swift_version}-${linux_version}.tar.xz" linux
 rm -rf linux mac
