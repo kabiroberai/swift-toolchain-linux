@@ -96,7 +96,7 @@ find linux/host \( -path 'linux/host/bin/*' -o -path 'linux/host/local/*' -o -pa
 # ...but replace some components with mac ones...
 rm -rf linux/iphone/lib/swift{,_static}
 if [[ "${is_mac}" = true ]]; then
-	cp -a "${mac_toolchain}"/usr/lib/{swift-5.0,arc} linux/iphone/lib/
+	cp -a "${mac_toolchain}"/usr/lib/swift-5.0 linux/iphone/lib/
 else
 	info "Note: this toolchain will ONLY support iOS 12.2+."
 fi
