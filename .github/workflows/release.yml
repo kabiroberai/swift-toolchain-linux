@@ -26,13 +26,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu22.04-aarch64, ubuntu22.04, ubuntu20.04-aarch64, ubuntu20.04, ubuntu18.04]
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v3
     - name: Build Release
       id: build_release
       run: |
-        ./create-toolchain ${{ matrix.os }}
+        DEVELOPER_DIR=/Applications/Xcode_14.3.app/Contents/Developer ./create-toolchain ${{ matrix.os }}
 
     - name: Attach Build To Release
       run: |
