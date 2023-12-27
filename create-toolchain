@@ -106,7 +106,9 @@ cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
 rm linux/iphone/lib/swift/clang
 cp -a linux/{host,iphone}/lib/swift/clang
-# remove c++ headers as included with SDK
+# remove borked plutil in favor of plistutil
+rm linux/iphone/bin/plutil
+# remove c++ headers as included in SDK
 rm -rf linux/iphone/include/c++/
 
 info "Installing Darwin tools"
