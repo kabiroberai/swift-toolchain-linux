@@ -69,7 +69,7 @@ dl "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/build
 
 info "Unpacking Linux toolchain"
 rm -rf linux
-tar -xzvf "toolchain-${linux_version}-${swift_version}.tar.gz"
+tar -xvf "toolchain-${linux_version}-${swift_version}.tar.gz"
 mv "${file_name_linux}" linux
 mv linux/{usr,host}
 
@@ -110,7 +110,7 @@ cp -a linux/{host,iphone}/lib/swift/clang
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
 dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-${linux_version}.tar.gz"
-tar -xzvf "darwin-tools-${linux_version}.tar.gz"
+tar -xvf "darwin-tools-${linux_version}.tar.gz"
 
 info "Packaging toolchain"
 mkdir -p ../packages
