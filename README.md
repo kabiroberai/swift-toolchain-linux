@@ -30,5 +30,6 @@ The currently supported versions are:
 - `ubuntu22.04`
 - `ubuntu22.04-aarch64`
 - `ubi9`
+- `ubi9-aarch64`
 
 Upon completion of the script, the output can be found in the `packages` directory.
