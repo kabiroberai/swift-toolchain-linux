@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-DARWIN_TOOLS_VERSION="2.2.1"
+# DARWIN_TOOLS_VERSION="2.2.1"
 
 [[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
@@ -109,7 +109,7 @@ cp -a linux/{host,iphone}/lib/swift/clang
 
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
-dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
+dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-${linux_version}.tar.gz"
 tar -xzvf "darwin-tools-${linux_version}.tar.gz"
 
 info "Packaging toolchain"
