@@ -26,6 +26,9 @@ The `linux version` argument is in the format `<distribution><version>` (all low
 
 The currently supported versions are:
 - `ubuntu20.04`
+- `ubuntu20.04-aarch64`
 - `ubuntu22.04`
+- `ubuntu22.04-aarch64`
+- `ubi9`
 
 Upon completion of the script, the output can be found in the `packages` directory.

@@ -21,6 +21,12 @@ err() {
 	exit 1
 }
 
+supported_plats=("ubuntu20.04" "ubuntu20.04-aarch64" "ubuntu22.04" "ubuntu22.04-aarch64" "ubi9")
+if ! printf '%s\0' "${supported_plats[@]}" | grep -F -x -z -- "${1}" > /dev/null && \
+   ! printf '%s\0' "${supported_plats[@]}" | grep -F -x -z -- "${2}" > /dev/null; then
+   	err "${1} ${2} is not a valid configuration"
+fi
+
 mkdir -p toolchains
 rm -rf toolchains/*.tmp
 
