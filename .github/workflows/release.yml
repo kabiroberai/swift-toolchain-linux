@@ -24,6 +24,7 @@ jobs:
   build:
     needs: create_release
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu22.04-aarch64, ubuntu22.04, ubuntu20.04-aarch64, ubuntu20.04, ubuntu18.04]
     runs-on: macos-13
