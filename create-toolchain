@@ -114,7 +114,7 @@ rm -rf linux/iphone/include/c++/
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
 # If distro isn't debian-based, use ubuntu20.04 as darwintools base
-if ! [[ "${linux_version}" == *"$ubuntu"* ]]; then
+if ! [[ "${linux_version}" == *"ubuntu"* ]]; then
 	dl "darwin-tools-ubuntu20.04.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-ubuntu20.04.tar.gz"
 	tar -xvf "darwin-tools-ubuntu20.04.tar.gz"
 else
