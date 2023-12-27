@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-# DARWIN_TOOLS_VERSION="2.2.1"
+DARWIN_TOOLS_VERSION="2.2.1"
 
 [[ "$(uname -s)" = "Darwin" ]] && is_mac=true
 
@@ -122,14 +122,14 @@ info "Installing Darwin tools"
 # If distro isn't debian-based, use ubuntu20.04 as darwintools base
 if ! [[ "${linux_version}" == *"ubuntu"* ]]; then
 	if [[ "${linux_version}" =~ "aarch64" ]]; then
-		dl "darwin-tools-ubuntu20.04-aarch64.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-ubuntu20.04-aarch64.tar.gz"
+		dl "darwin-tools-ubuntu20.04-aarch64.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04-aarch64.tar.gz"
 		tar -xvf "darwin-tools-ubuntu20.04-aarch64.tar.gz"
 	else
-		dl "darwin-tools-ubuntu20.04.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-ubuntu20.04.tar.gz"
+		dl "darwin-tools-ubuntu20.04.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04.tar.gz"
 		tar -xvf "darwin-tools-ubuntu20.04.tar.gz"
 	fi
 else
-	dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/l1ghtmann/darwin-tools-linux/releases/latest/download/darwin-tools-${linux_version}.tar.gz"
+	dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
 	tar -xvf "darwin-tools-${linux_version}.tar.gz"
 fi
 
