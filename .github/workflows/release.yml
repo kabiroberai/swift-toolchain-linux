@@ -13,7 +13,7 @@ jobs:
     outputs:
       release_tag: ${{ steps.create_release.outputs.release_tag }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Release
       id: create_release
       run: |
@@ -24,15 +24,16 @@ jobs:
   build:
     needs: create_release
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu22.04-aarch64, ubuntu22.04, ubuntu20.04-aarch64, ubuntu20.04, ubuntu18.04]
+        os: [ubuntu22.04-aarch64, ubuntu22.04, ubuntu20.04-aarch64, ubuntu20.04, ubi9-aarch64, ubi9,]
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build Release
       id: build_release
       run: |
-        DEVELOPER_DIR=/Applications/Xcode_14.3.app/Contents/Developer ./create-toolchain ${{ matrix.os }}
+        DEVELOPER_DIR=/Applications/Xcode_15.1.app/Contents/Developer ./create-toolchain ${{ matrix.os }}
 
     - name: Attach Build To Release
       run: |

@@ -21,6 +21,12 @@ err() {
 	exit 1
 }
 
+supported_plats=("ubuntu20.04" "ubuntu20.04-aarch64" "ubuntu22.04" "ubuntu22.04-aarch64" "ubi9" "ubi9-aarch64")
+if ! printf '%s\0' "${supported_plats[@]}" | grep -F -x -z -- "${1}" > /dev/null && \
+   ! printf '%s\0' "${supported_plats[@]}" | grep -F -x -z -- "${2}" > /dev/null; then
+   	err "${1} ${2} is not a valid configuration"
+fi
+
 mkdir -p toolchains
 rm -rf toolchains/*.tmp
 
@@ -69,7 +75,7 @@ dl "toolchain-${linux_version}-${swift_version}.tar.gz" "https://swift.org/build
 
 info "Unpacking Linux toolchain"
 rm -rf linux
-tar -xzvf "toolchain-${linux_version}-${swift_version}.tar.gz"
+tar -xvf "toolchain-${linux_version}-${swift_version}.tar.gz"
 mv "${file_name_linux}" linux
 mv linux/{usr,host}
 
@@ -106,11 +112,26 @@ cp -a "${mac_toolchain}"/usr/include linux/iphone/include
 # ...but-but replace the mac lib/swift/clang symlink with the linux one
 rm linux/iphone/lib/swift/clang
 cp -a linux/{host,iphone}/lib/swift/clang
+# remove borked plutil in favor of plistutil
+rm linux/iphone/bin/plutil
+# remove c++ headers as included in SDK
+rm -rf linux/iphone/include/c++/
 
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
-dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
-tar -xzvf "darwin-tools-${linux_version}.tar.gz"
+if [[ "${linux_version}" == *"ubuntu"* ]]; then
+	dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
+	tar -xvf "darwin-tools-${linux_version}.tar.gz"
+# If distro isn't debian-based, use ubuntu20.04 as darwintools base
+else
+	if [[ "${linux_version}" =~ "aarch64" ]]; then
+		dl "darwin-tools-ubuntu20.04-aarch64.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04-aarch64.tar.gz"
+		tar -xvf "darwin-tools-ubuntu20.04-aarch64.tar.gz"
+	else
+		dl "darwin-tools-ubuntu20.04.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04.tar.gz"
+		tar -xvf "darwin-tools-ubuntu20.04.tar.gz"
+	fi
+fi
 
 info "Packaging toolchain"
 mkdir -p ../packages
