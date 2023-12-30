@@ -119,8 +119,11 @@ rm -rf linux/iphone/include/c++/
 
 info "Installing Darwin tools"
 # The hierarchy lines up with ours just right so we dont need to -C
+if [[ "${linux_version}" == *"ubuntu"* ]]; then
+	dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
+	tar -xvf "darwin-tools-${linux_version}.tar.gz"
 # If distro isn't debian-based, use ubuntu20.04 as darwintools base
-if ! [[ "${linux_version}" == *"ubuntu"* ]]; then
+else
 	if [[ "${linux_version}" =~ "aarch64" ]]; then
 		dl "darwin-tools-ubuntu20.04-aarch64.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04-aarch64.tar.gz"
 		tar -xvf "darwin-tools-ubuntu20.04-aarch64.tar.gz"
@@ -128,9 +131,6 @@ if ! [[ "${linux_version}" == *"ubuntu"* ]]; then
 		dl "darwin-tools-ubuntu20.04.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-ubuntu20.04.tar.gz"
 		tar -xvf "darwin-tools-ubuntu20.04.tar.gz"
 	fi
-else
-	dl "darwin-tools-${linux_version}.tar.gz" "https://github.com/kabiroberai/darwin-tools-linux/releases/download/v${DARWIN_TOOLS_VERSION}/darwin-tools-${linux_version}.tar.gz"
-	tar -xvf "darwin-tools-${linux_version}.tar.gz"
 fi
 
 info "Packaging toolchain"
